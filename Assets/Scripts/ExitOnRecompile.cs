@@ -31,6 +31,7 @@ public class ExitPlayModeOnScriptCompile {
 
 		Debug.Log("Exiting play mode due to script compilation.");
 		EditorApplication.isPlaying = false;
+		EditorApplication.isPlaying = true;
 	}
 
 	// Used to silence the 'is assigned by its value is never used' warning for _instance.

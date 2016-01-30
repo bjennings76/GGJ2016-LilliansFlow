@@ -5,12 +5,14 @@ using JetBrains.Annotations;
 using UnityEngine;
 
 public class DrawingDirector : Singleton<DrawingDirector> {
-	[UsedImplicitly] public int Count = 3;
-	[UsedImplicitly] public float ScaleDelay = 3;
+	[UsedImplicitly] public int DrawingPoolCount = 1;
+	[UsedImplicitly] public float StartNextScale = 2;
+	[UsedImplicitly] public float FadeStartScale = 3;
 	[UsedImplicitly] public List<string> DrawingNames;
-
 	[UsedImplicitly] public List<DrawingInfo> DrawingList;
-	private List<DrawingInfo> m_CurrentDrawingList = new List<DrawingInfo>();
+	[UsedImplicitly] public List<DrawingInfo> CurrentDrawingPool = new List<DrawingInfo>();
+
+	private static Drawing s_CurrentDrawing;
 
 	private static AudioSource s_CurrentAudioSource;
 	private static List<AudioClip> s_Goods;
@@ -19,7 +21,7 @@ public class DrawingDirector : Singleton<DrawingDirector> {
 	private static int s_LastGood;
 	private static int s_LastBad;
 
-	private int m_LastDrawing = -1;
+	private int m_LastDrawingIndex = -1;
 
 	[UsedImplicitly]
 	private void Start() {
@@ -28,36 +30,35 @@ public class DrawingDirector : Singleton<DrawingDirector> {
 			return;
 		}
 
-		DrawingList = new List<DrawingInfo>(DrawingNames.Select(n => new DrawingInfo(Resources.LoadAll("Drawings/" + n))).OrderBy(di => Guid.NewGuid()));
+		DrawingList = new List<DrawingInfo>(DrawingNames.Select(n => new DrawingInfo("Drawings/" + n, Resources.LoadAll("Drawings/" + n))).OrderBy(di => Guid.NewGuid()));
 
 		s_Goods = Resources.LoadAll<AudioClip>("Audio/Good").OrderBy(a => Guid.NewGuid()).ToList();
 		s_Bads = Resources.LoadAll<AudioClip>("Audio/Bad").OrderBy(a => Guid.NewGuid()).ToList();
+
+		GetNewDrawings();
 	}
 
 	[UsedImplicitly]
 	private void Update() {
-		//m_CurrentDrawingList = m_CurrentDrawingList.Where(d => d.Instance).ToList();
-
-		if (m_CurrentDrawingList.Count >= Count) {
+		if (s_CurrentDrawing != null && !s_CurrentDrawing.ReadyForNext) {
 			return;
 		}
 
-		DrawingInfo lastDrawing = m_CurrentDrawingList.LastOrDefault();
+		DrawingInfo chosenDrawing = CurrentDrawingPool.First();
+		s_CurrentDrawing = chosenDrawing.Play();
+		CurrentDrawingPool.Remove(chosenDrawing);
+		CurrentDrawingPool.Add(chosenDrawing);
+	}
 
-		if (lastDrawing != null && !lastDrawing.ReadyForNext) {
-			return;
+	private DrawingInfo GetNextDrawing() {
+		m_LastDrawingIndex++;
+		if (m_LastDrawingIndex >= DrawingList.Count) {
+			m_LastDrawingIndex = 0;
+			DrawingList = DrawingList.OrderBy(d => Guid.NewGuid()).ToList();
 		}
-
-		int nextDrawingIndex = m_LastDrawing + 1;
-
-		if (nextDrawingIndex >= DrawingList.Count) {
-			nextDrawingIndex = 0;
-		}
-
-		DrawingInfo drawing = DrawingList[nextDrawingIndex];
-		m_LastDrawing = nextDrawingIndex;
-		m_CurrentDrawingList.Add(drawing);
-		drawing.Init();
+		DrawingInfo drawing = DrawingList[m_LastDrawingIndex];
+		drawing.State = DrawingState.Chosen;
+		return drawing;
 	}
 
 	public static void PlayAudio(Component component, AudioClip clip, float delay = 0, float volumeScale = 1) {
@@ -66,7 +67,6 @@ public class DrawingDirector : Singleton<DrawingDirector> {
 		}
 
 		AudioSource source = component.GetOrAddComponent<AudioSource>();
-		//source.spatialBlend = 1;
 
 		Debug.Log("Playing " + clip + " with " + delay.ToString("N2") + " second delay.");
 		if (delay > 0) {
@@ -122,15 +122,28 @@ public class DrawingDirector : Singleton<DrawingDirector> {
 
 	[UsedImplicitly]
 	public static void Remove(GameObject obj) {
-		DrawingInfo drawing = Instance.m_CurrentDrawingList.FirstOrDefault(d => d.Instance == obj);
-
-		if (drawing != null) {
-			Instance.m_CurrentDrawingList.Remove(drawing);
-		}
-		else {
-			Debug.LogError("Couldn't find " + obj + " in current drawing list.");
+		if (obj == s_CurrentDrawing.gameObject) {
+			s_CurrentDrawing = null;
 		}
 
 		Destroy(obj);
+	}
+
+	public static void Complete(Drawing drawing, float length) {
+		PlayGood(length);
+		Instance.CurrentDrawingPool.Remove(drawing.Info);
+
+		if (Instance.CurrentDrawingPool.Count == 0) {
+			Instance.DrawingPoolCount++;
+			Instance.GetNewDrawings();
+		}
+	}
+
+	private void GetNewDrawings() {
+		CurrentDrawingPool.Clear();
+
+		while (CurrentDrawingPool.Count < DrawingPoolCount) {
+			CurrentDrawingPool.Add(GetNextDrawing());
+		}
 	}
 }
