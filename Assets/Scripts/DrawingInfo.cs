@@ -9,8 +9,8 @@ public class DrawingInfo {
 	[UsedImplicitly] public GameObject Prefab;
 	[UsedImplicitly] public GameObject Instance;
 	[UsedImplicitly] public List<AudioClip> Clips = new List<AudioClip>();
-	[UsedImplicitly] public int Pass;
 
+	public int TapPointsVisible = 1;
 	private Drawing m_Drawing;
 
 	public DrawingInfo(IEnumerable<Object> assets) {

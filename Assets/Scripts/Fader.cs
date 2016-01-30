@@ -47,7 +47,7 @@ public class Fader : MonoBehaviour {
 		if (m_FadingOut) {
 			return;
 		}
-
+		Debug.Log("Starting fade out...", this);
 		m_FadingOut = true;
 		m_CurrentFadeOutDuration = FadeOutDuration;
 	}
@@ -61,6 +61,7 @@ public class Fader : MonoBehaviour {
 
 		if (m_CurrentFadeOutDuration < 0) {
 			DrawingDirector.Remove(gameObject);
+			Debug.Log("Fade out complete.", this);
 		}
 	}
 }

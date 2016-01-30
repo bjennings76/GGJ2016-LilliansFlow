@@ -21,16 +21,26 @@ public class Drawing : MonoBehaviour {
 		if (TapPoints.Count != m_Info.Clips.Count) {
 			Debug.LogWarning("Tap points don't match audio clip count!: " + TapPoints + " taps != " + m_Info.Clips.Count + " clips.");
 		}
+
+		SetupTaps(m_Info.TapPointsVisible);
 	}
 
-	public void Tap(TapPoint tapPoint) {
+	private void SetupTaps(int count) {
+		for (int i = 0; i < TapPoints.Count; i++) {
+			TapPoints[i].SetTap(i < count);
+		}
+	}
+
+	public bool TryTap(TapPoint tapPoint) {
 		int targetTap = m_LastTapped + 1;
 		int currentTap = TapPoints.IndexOf(tapPoint) + 1;
 		if (currentTap == targetTap) {
 			GoodTap(targetTap, currentTap);
+			return true;
 		}
 		else {
 			BadTap(targetTap, currentTap);
+			return false;
 		}
 	}
 
@@ -47,21 +57,26 @@ public class Drawing : MonoBehaviour {
 			Debug.LogWarning("Can't find clip for tap #" + targetTap, this);
 		}
 
-		if (currentTap == TapPoints.Count) {
+		if (currentTap == m_Info.TapPointsVisible) {
 			CompleteDrawing(clip ? clip.length : 0);
 		}
 	}
 
 	private void CompleteDrawing(float length) {
-		DrawingDirector.PlayGood(length);
-		Fader fader = GetComponentInParent<Fader>();
-		if (fader) {
-			fader.StartFadeOut();
+		if (m_Info.TapPointsVisible == TapPoints.Count) {
+			DrawingDirector.PlayGood(length);
+			m_Info.TapPointsVisible = 1;
 		}
+		else {
+			m_Info.TapPointsVisible++;
+		}
+
+		GetComponent<Fader>().StartFadeOut();
 	}
 
-	private static void BadTap(int targetTap, int currentTap) {
+	private void BadTap(int targetTap, int currentTap) {
 		Debug.Log("Failed to tap #" + targetTap + ". Tapped #" + currentTap + " instead.");
 		DrawingDirector.PlayBad();
+		GetComponent<Fader>().StartFadeOut();
 	}
 }

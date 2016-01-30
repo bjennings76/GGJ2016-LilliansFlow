@@ -66,7 +66,7 @@ public class DrawingDirector : Singleton<DrawingDirector> {
 		}
 
 		AudioSource source = component.GetOrAddComponent<AudioSource>();
-		source.spatialBlend = 1;
+		//source.spatialBlend = 1;
 
 		Debug.Log("Playing " + clip + " with " + delay.ToString("N2") + " second delay.");
 		if (delay > 0) {
@@ -124,11 +124,13 @@ public class DrawingDirector : Singleton<DrawingDirector> {
 	public static void Remove(GameObject obj) {
 		DrawingInfo drawing = Instance.m_CurrentDrawingList.FirstOrDefault(d => d.Instance == obj);
 
-		if (drawing == null) {
-			return;
+		if (drawing != null) {
+			Instance.m_CurrentDrawingList.Remove(drawing);
+		}
+		else {
+			Debug.LogError("Couldn't find " + obj + " in current drawing list.");
 		}
 
-		Instance.m_CurrentDrawingList.Remove(drawing);
 		Destroy(obj);
 	}
 }
