@@ -5,11 +5,12 @@ using UnityEngine;
 
 [UsedImplicitly]
 public class Drawing : MonoBehaviour {
-	private DrawingInfo m_Info; 
+	private DrawingInfo m_Info;
 
 	private List<TapPoint> TapPoints {
 		get { return m_TapPoints ?? (m_TapPoints = GetComponentsInChildren<TapPoint>().OrderBy(t => t.Order).ToList()); }
 	}
+
 	private List<TapPoint> m_TapPoints;
 
 	private int m_LastTapped;
