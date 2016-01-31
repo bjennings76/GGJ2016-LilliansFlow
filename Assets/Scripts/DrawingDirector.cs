@@ -17,6 +17,7 @@ public class DrawingDirector : Singleton<DrawingDirector> {
 	private static AudioSource s_CurrentAudioSource;
 	private static List<AudioClip> s_Goods;
 	private static List<AudioClip> s_Bads;
+	private static List<Sprite> s_Icons;
 
 	private static int s_LastGood;
 	private static int s_LastBad;
@@ -30,10 +31,11 @@ public class DrawingDirector : Singleton<DrawingDirector> {
 			return;
 		}
 
-		DrawingList = new List<DrawingInfo>(DrawingNames.Select(n => new DrawingInfo("Drawings/" + n, Resources.LoadAll("Drawings/" + n))).OrderBy(di => Guid.NewGuid()));
-
 		s_Goods = Resources.LoadAll<AudioClip>("Audio/Good").OrderBy(a => Guid.NewGuid()).ToList();
 		s_Bads = Resources.LoadAll<AudioClip>("Audio/Bad").OrderBy(a => Guid.NewGuid()).ToList();
+		s_Icons = Resources.LoadAll<Sprite>("Icons").ToList();
+
+		DrawingList = new List<DrawingInfo>(DrawingNames.Select(n => new DrawingInfo("Drawings/" + n, Resources.LoadAll("Drawings/" + n), s_Icons)).OrderBy(di => Guid.NewGuid()));
 
 		GetNewDrawings();
 	}

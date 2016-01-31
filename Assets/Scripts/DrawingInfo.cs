@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -9,6 +10,7 @@ public class DrawingInfo {
 	[UsedImplicitly] public GameObject Prefab;
 	[UsedImplicitly] public string Path;
 	[UsedImplicitly] public List<AudioClip> Clips = new List<AudioClip>();
+	[UsedImplicitly] public List<Sprite> Icons = new List<Sprite>();
 
 	public int TotalFailures;
 	public int Successes;
@@ -22,7 +24,7 @@ public class DrawingInfo {
 
 	private Drawing m_Drawing;
 
-	public DrawingInfo(string path, IEnumerable<Object> assets) {
+	public DrawingInfo(string path, IEnumerable<Object> assets, List<Sprite> icons) {
 		Path = path;
 
 		foreach (Object asset in assets) {
@@ -41,6 +43,18 @@ public class DrawingInfo {
 			}
 
 			Debug.Log("Ignoring " + asset);
+		}
+
+		Icons = icons.OrderBy(icon => Guid.NewGuid()).ToList();
+
+		int i = 0;
+		while (Icons.Count < Clips.Count) {
+			if (i >= Icons.Count) {
+				i = 0;
+			}
+
+			Icons.Add(Icons[i]);
+			i++;
 		}
 
 		if (!Prefab) {

@@ -39,7 +39,7 @@ public class Drawing : MonoBehaviour {
 		}
 
 		for (int i = 0; i < TapPoints.Count; i++) {
-			TapPoints[i].SetTap(i < TapPointsVisible);
+			TapPoints[i].SetTap(i < TapPointsVisible, info.Icons[i]);
 		}
 	}
 
