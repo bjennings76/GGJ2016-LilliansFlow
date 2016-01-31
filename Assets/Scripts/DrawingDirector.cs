@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using UnityEngine;
+using UnityEngine.UI;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-using UnityEngine;
 
 public class DrawingDirector : Singleton<DrawingDirector> {
+	[UsedImplicitly] public Text ScoreDisplay;
 	[UsedImplicitly] public int DrawingPoolCount = 1;
 	[UsedImplicitly] public float StartNextScale = 2;
 	[UsedImplicitly] public float FadeStartScale = 3;
@@ -39,7 +41,7 @@ public class DrawingDirector : Singleton<DrawingDirector> {
 		s_Bads = Resources.LoadAll<AudioClip>("Audio/Bad").OrderBy(a => Guid.NewGuid()).ToList();
 		s_Icons = Resources.LoadAll<Sprite>("Icons").ToList();
 
-		DrawingList = new List<DrawingInfo>(drawingNames.Select(n => new DrawingInfo("Drawings/" + n, Resources.LoadAll("Drawings/" + n), s_Icons)).OrderByDescending(di => di.Clips.Count).ThenBy(di => Guid.NewGuid()));
+		DrawingList = new List<DrawingInfo>(drawingNames.Select(n => new DrawingInfo("Drawings/" + n, Resources.LoadAll("Drawings/" + n), s_Icons)).OrderBy(di => di.Clips.Count).ThenBy(di => Guid.NewGuid()));
 
 		GetNewDrawings();
 	}
@@ -145,12 +147,19 @@ public class DrawingDirector : Singleton<DrawingDirector> {
 	public static void Complete(Drawing drawing, float length) {
 		PlayGood(length);
 		Instance.CurrentDrawingPool.Remove(drawing.Info);
+		Completed++;
+
+		if (Instance.ScoreDisplay) {
+			Instance.ScoreDisplay.text = Completed.ToString();
+		}
 
 		if (Instance.CurrentDrawingPool.Count == 0) {
 			Instance.DrawingPoolCount++;
 			Instance.GetNewDrawings();
 		}
 	}
+
+	public static int Completed { get; set; }
 
 	private void GetNewDrawings() {
 		CurrentDrawingPool.Clear();
