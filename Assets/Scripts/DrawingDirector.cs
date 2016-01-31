@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 
 public class DrawingDirector : Singleton<DrawingDirector> {
@@ -26,9 +28,9 @@ public class DrawingDirector : Singleton<DrawingDirector> {
 
 	[UsedImplicitly]
 	private void Start() {
-		var DrawingNames = Resources.LoadAll<GameObject>("Drawings").Select(go => go.name).ToList();
+		List<string> drawingNames = Resources.LoadAll<GameObject>("Drawings").Select(go => go.name).ToList();
 
-		if (DrawingNames.Count == 0) {
+		if (drawingNames.Count == 0) {
 			Debug.LogError("No picture paths found.", this);
 			return;
 		}
@@ -37,7 +39,7 @@ public class DrawingDirector : Singleton<DrawingDirector> {
 		s_Bads = Resources.LoadAll<AudioClip>("Audio/Bad").OrderBy(a => Guid.NewGuid()).ToList();
 		s_Icons = Resources.LoadAll<Sprite>("Icons").ToList();
 
-		DrawingList = new List<DrawingInfo>(DrawingNames.Select(n => new DrawingInfo("Drawings/" + n, Resources.LoadAll("Drawings/" + n), s_Icons)).OrderByDescending(di => di.Clips.Count).ThenBy(di => Guid.NewGuid()));
+		DrawingList = new List<DrawingInfo>(drawingNames.Select(n => new DrawingInfo("Drawings/" + n, Resources.LoadAll("Drawings/" + n), s_Icons)).OrderByDescending(di => di.Clips.Count).ThenBy(di => Guid.NewGuid()));
 
 		GetNewDrawings();
 	}
