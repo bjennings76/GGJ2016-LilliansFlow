@@ -23,6 +23,11 @@ public class Drawing : MonoBehaviour {
 
 	private bool m_ReadyForNextNow;
 
+	public Zoomer Zoomer {
+		get { return m_Zoomer ? m_Zoomer : (m_Zoomer = this.GetOrAddComponent<Zoomer>()); }
+	}
+	private Zoomer m_Zoomer;
+
 	private List<TapPoint> TapPoints {
 		get { return m_TapPoints ?? (m_TapPoints = GetComponentsInChildren<TapPoint>().OrderBy(t => t.Order).ToList()); }
 	}
@@ -37,6 +42,8 @@ public class Drawing : MonoBehaviour {
 		if (TapPoints.Count != Info.Clips.Count) {
 			Debug.LogWarning("Tap points don't match audio clip count!: " + TapPoints + " taps != " + Info.Clips.Count + " clips.");
 		}
+
+		Zoomer.RateModifier = 1f/TapPointsVisible;
 
 		for (int i = 0; i < TapPoints.Count; i++) {
 			TapPoints[i].SetTap(i < TapPointsVisible, info.Icons[i]);

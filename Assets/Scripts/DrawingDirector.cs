@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using UnityEditor;
 using UnityEngine;
 
 public class DrawingDirector : Singleton<DrawingDirector> {
@@ -35,13 +36,20 @@ public class DrawingDirector : Singleton<DrawingDirector> {
 		s_Bads = Resources.LoadAll<AudioClip>("Audio/Bad").OrderBy(a => Guid.NewGuid()).ToList();
 		s_Icons = Resources.LoadAll<Sprite>("Icons").ToList();
 
-		DrawingList = new List<DrawingInfo>(DrawingNames.Select(n => new DrawingInfo("Drawings/" + n, Resources.LoadAll("Drawings/" + n), s_Icons)).OrderBy(di => Guid.NewGuid()));
+		DrawingList = new List<DrawingInfo>(DrawingNames.Select(n => new DrawingInfo("Drawings/" + n, Resources.LoadAll("Drawings/" + n), s_Icons)).OrderByDescending(di => di.Clips.Count).ThenBy(di => Guid.NewGuid()));
 
 		GetNewDrawings();
 	}
 
 	[UsedImplicitly]
 	private void Update() {
+		if (Input.GetKeyUp(KeyCode.Escape)) {
+			Application.Quit();
+#if UNITY_EDITOR
+			EditorApplication.isPlaying = false;
+#endif
+		}
+
 		if (s_CurrentDrawing != null && !s_CurrentDrawing.ReadyForNext) {
 			return;
 		}
