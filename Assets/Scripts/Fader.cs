@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class Fader : MonoBehaviour {
 	[UsedImplicitly] public float FadedInEnd = 0.1f;
-	[UsedImplicitly] public float FadeOutStart = 30;
+	//[UsedImplicitly] public float FadeOutStart = 30;
 	[UsedImplicitly] public float FadeOutDuration = 3;
 
 	private bool m_FadingOut;
@@ -34,7 +34,7 @@ public class Fader : MonoBehaviour {
 			return scale/FadedInEnd;
 		}
 
-		if (scale > FadeOutStart) {
+		if (scale > DrawingDirector.Instance.FadeStartScale) {
 			StartFadeOut();
 		}
 
