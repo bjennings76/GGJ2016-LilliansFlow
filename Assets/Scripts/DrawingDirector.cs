@@ -9,7 +9,6 @@ public class DrawingDirector : Singleton<DrawingDirector> {
 	[UsedImplicitly] public int DrawingPoolCount = 1;
 	[UsedImplicitly] public float StartNextScale = 2;
 	[UsedImplicitly] public float FadeStartScale = 3;
-	[UsedImplicitly] public List<string> DrawingNames;
 	[UsedImplicitly] public List<DrawingInfo> DrawingList;
 	[UsedImplicitly] public List<DrawingInfo> CurrentDrawingPool = new List<DrawingInfo>();
 
@@ -27,7 +26,9 @@ public class DrawingDirector : Singleton<DrawingDirector> {
 
 	[UsedImplicitly]
 	private void Start() {
-		if (DrawingNames == null) {
+		var DrawingNames = Resources.LoadAll<GameObject>("Drawings").Select(go => go.name).ToList();
+
+		if (DrawingNames.Count == 0) {
 			Debug.LogError("No picture paths found.", this);
 			return;
 		}
