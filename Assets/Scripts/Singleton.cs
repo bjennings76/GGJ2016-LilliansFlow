@@ -12,7 +12,7 @@ public class Singleton<T> : MonoBehaviour where T : MonoBehaviour {
 	// Returns the instance of this singleton
 	public static T Instance {
 		get {
-			Debug.Assert(!s_Quitting, "An attempt was made to access {0} when the game is quitting.", typeof (T).Name);
+			Debug.AssertFormat(!s_Quitting, "An attempt was made to access {0} when the game is quitting.", typeof (T).Name);
 			if (!s_Quitting) {
 				if (s_Instance == null) {
 					s_Instance = (T) FindObjectOfType(typeof (T));
