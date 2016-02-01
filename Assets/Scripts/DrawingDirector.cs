@@ -42,10 +42,10 @@ public class DrawingDirector : Singleton<DrawingDirector> {
 		s_Bads = Resources.LoadAll<AudioClip>("Audio/Bad").OrderBy(a => Guid.NewGuid()).ToList();
 		s_Icons = Resources.LoadAll<Sprite>("Icons").ToList();
 
-		DrawingList = new List<DrawingInfo>(drawingNames.Select(n => new DrawingInfo("Drawings/" + n, Resources.LoadAll("Drawings/" + n), s_Icons)).OrderBy(di => di.Clips.Count).ThenBy(di => Guid.NewGuid()));
+		DrawingList = new List<DrawingInfo>(drawingNames.Select(n => new DrawingInfo("Drawings/" + n, Resources.LoadAll("Drawings/" + n), s_Icons)).OrderBy(di => Guid.NewGuid()));
 
 		GetNewDrawings();
-		UpdateScore();
+		UpdateScore(0.3f, false);
 	}
 
 	[UsedImplicitly]
@@ -78,26 +78,19 @@ public class DrawingDirector : Singleton<DrawingDirector> {
 		return drawing;
 	}
 
-	public static void PlayAudio(Component component, AudioClip clip, float delay = 0, float volumeScale = 1) {
-		if (s_CurrentAudioSource && s_CurrentAudioSource.isPlaying && delay <= 0) {
+	public static void PlayAudio(Component component, AudioClip clip, float volumeScale = 1) {
+		if (s_CurrentAudioSource && s_CurrentAudioSource.isPlaying) {
 			s_CurrentAudioSource.Stop();
 		}
 
 		AudioSource source = component.GetOrAddComponent<AudioSource>();
 
-		Debug.Log("Playing " + clip + " with " + delay.ToString("N2") + " second delay.");
-		if (delay > 0) {
-			source.clip = clip;
-			source.PlayScheduled(AudioSettings.dspTime + delay);
-		}
-		else {
-			source.PlayOneShot(clip, volumeScale);
-		}
-
+		Debug.Log("Playing " + clip);
+		source.PlayOneShot(clip, volumeScale);
 		s_CurrentAudioSource = source;
 	}
 
-	public static void PlayGood(float delay = 0) {
+	private static void PlayGood() {
 		if (s_Goods.Count == 0) {
 			Debug.LogError("Can't play 'good' audio. No good clips found.");
 			return;
@@ -113,7 +106,7 @@ public class DrawingDirector : Singleton<DrawingDirector> {
 		AudioClip clip = s_Goods.ElementAtOrDefault(s_LastGood);
 
 		if (clip) {
-			PlayAudio(Instance, clip, delay);
+			PlayAudio(Instance, clip);
 		}
 	}
 
@@ -147,11 +140,10 @@ public class DrawingDirector : Singleton<DrawingDirector> {
 	}
 
 	public static void Complete(Drawing drawing, float length) {
-		PlayGood(length);
 		Instance.CurrentDrawingPool.Remove(drawing.Info);
 		Completed++;
 
-		UpdateScore();
+		UpdateScore(length, true);
 
 		if (Instance.CurrentDrawingPool.Count == 0) {
 			Instance.DrawingPoolCount++;
@@ -159,13 +151,17 @@ public class DrawingDirector : Singleton<DrawingDirector> {
 		}
 	}
 
-	private static void UpdateScore() {
+	private static void UpdateScore(float delay, bool playAudio) {
 		if (!Instance.ScoreDisplay) {
 			return;
 		}
-
-		Instance.ScoreDisplay.text = Completed + "/" + Instance.DrawingList.Count;
-		Instance.ScoreDisplay.transform.DOPunchScale(new Vector3(1.2f, 1.2f, 1.2f), 1);
+		DOTween.Sequence().PrependInterval(delay + 0.5f).OnComplete(() => {
+			if (playAudio) {
+				PlayGood();
+			}
+			Instance.ScoreDisplay.transform.DOPunchScale(new Vector3(1.2f, 1.2f, 1.2f), 1);
+			Instance.ScoreDisplay.text = Completed + "/" + Instance.DrawingList.Count;
+		});
 	}
 
 	public static int Completed { get; set; }
@@ -176,5 +172,7 @@ public class DrawingDirector : Singleton<DrawingDirector> {
 		while (CurrentDrawingPool.Count < DrawingPoolCount) {
 			CurrentDrawingPool.Add(GetNextDrawing());
 		}
+
+		CurrentDrawingPool = CurrentDrawingPool.OrderBy(di => di.Clips.Count).ToList();
 	}
 }
