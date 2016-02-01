@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using DG.Tweening;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.UI;
@@ -44,6 +45,7 @@ public class DrawingDirector : Singleton<DrawingDirector> {
 		DrawingList = new List<DrawingInfo>(drawingNames.Select(n => new DrawingInfo("Drawings/" + n, Resources.LoadAll("Drawings/" + n), s_Icons)).OrderBy(di => di.Clips.Count).ThenBy(di => Guid.NewGuid()));
 
 		GetNewDrawings();
+		UpdateScore();
 	}
 
 	[UsedImplicitly]
@@ -149,14 +151,21 @@ public class DrawingDirector : Singleton<DrawingDirector> {
 		Instance.CurrentDrawingPool.Remove(drawing.Info);
 		Completed++;
 
-		if (Instance.ScoreDisplay) {
-			Instance.ScoreDisplay.text = Completed.ToString();
-		}
+		UpdateScore();
 
 		if (Instance.CurrentDrawingPool.Count == 0) {
 			Instance.DrawingPoolCount++;
 			Instance.GetNewDrawings();
 		}
+	}
+
+	private static void UpdateScore() {
+		if (!Instance.ScoreDisplay) {
+			return;
+		}
+
+		Instance.ScoreDisplay.text = Completed + "/" + Instance.DrawingList.Count;
+		Instance.ScoreDisplay.transform.DOPunchScale(new Vector3(1.2f, 1.2f, 1.2f), 1);
 	}
 
 	public static int Completed { get; set; }
